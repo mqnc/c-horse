@@ -1,0 +1,5 @@
+﻿  main.cpp
+c:\users\mirko\development\chorse\src\main.cpp(25): warning C4477: "fprintf": Die Formatzeichenfolge "%d" erfordert ein Argument vom Typ "int", das variadic-Argument "3" weist aber den Typ "lua_Integer" auf.
+  c:\users\mirko\development\chorse\src\main.cpp(25): note: Verwenden Sie ggf. "%lld" in der Formatzeichenfolge.
+  c:\users\mirko\development\chorse\src\main.cpp(25): note: Verwenden Sie ggf. "%I64d" in der Formatzeichenfolge.
+  chorse.vcxproj -> C:\Users\mirko\development\chorse\chorse\Debug\chorse.exe
