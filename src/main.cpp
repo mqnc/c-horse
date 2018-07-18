@@ -1,139 +1,98 @@
 #include <stdio.h>
-#include "lua.hpp"
+//#include "lua.hpp"
 #include "peglib.h"
+#include "customparser.h"
+#include "grammar.h"
+#include <fstream>
 #include <string>
 
 using namespace peg;
 using namespace std;
 
+#define READFILE(STR, FILE) {ifstream ifs(FILE); STR.assign( (istreambuf_iterator<char>(ifs) ), (istreambuf_iterator<char>()));}
+
+#define RULE(name) testparser[#name] = [](const SemanticValues& sv)
+#define SV(I) sv[I].get<string>()
+#define OPTIONS switch (sv.choice())
+
 int main (int argc, char *argv[])
 { 
-/*
-   int m = 36, n = 27, result;
-   lua_State *L = luaL_newstate();
-   luaL_openlibs(L);
-   result = luaL_loadfile(L, "script.lua") || lua_pcall(L, 0, 0, 0);
-   if (result){
-      fprintf(stderr, "Fehler beim Laden des Skripts: %s!\n", lua_tostring(L, -1));
-   }
-
-   lua_getglobal(L, "ggT");
-   lua_pushnumber(L, m);
-   lua_pushnumber(L, n);
-
-   if (lua_pcall(L, 2, 1, 0))
-      fprintf(stderr,"Fehler in ggT: %s\n", lua_tostring(L, -1));
-
-   fprintf (stdout, "Der ggT von %d und %d ist %d\n",m ,n , lua_tointeger(L, -1));
-
-   lua_close(L);  
-*/   
-
+	
 	/*
-    auto syntax = R"(
-        LOOP        <- 'for' NUMBER '<' IDENTIFIER '<' NUMBER 'do' BODY 'loop'
-		NUMBER      <- [0-9]+
-		IDENTIFIER  <- [a-zA-Z_] [a-zA-Z0-9_]*
-		BODY        <- IDENTIFIER
-    )";*/
-	
-	auto syntax = R"(
-        WORD        <- ABC / ABD
-		ABC         <- A B C
-		ABD         <- A B D
-		A           <- 'a'
-		B           <- 'b'
-		C           <- 'c'
-		D           <- 'd'
-    )";
 
-    parser parser(syntax);
+	customparser testparser(R"(
+		prio4 <- prio3 '+' prio4 / prio3 '-' prio4 / prio3
+		prio3 <- prio2 '*' prio3 / prio2 '/' prio3 / prio2
+		prio2 <- prio15 '^' prio2 / prio15
+		prio15 <- '+' prio1 / '-' prio1 / prio1
+		prio1 <- '(' prio4 ')' / prio0
+		prio0 <- [a-z]
+	)");
+	
+	testparser.enable_packrat_parsing();
 
-	parser["ABC"].enter = [](any& dt) {		std::cout << "entering ABC" << std::endl;	};
-	parser["ABD"].enter = [](any& dt) {		std::cout << "entering ABD" << std::endl;	};	
-	parser["A"].enter = [](any& dt) {		std::cout << "entering A" << std::endl;	};
-	parser["B"].enter = [](any& dt) {		std::cout << "entering B" << std::endl;	};
-	parser["C"].enter = [](any& dt) {		std::cout << "entering C" << std::endl;	};	
-	parser["D"].enter = [](any& dt) {		std::cout << "entering D" << std::endl;	};
-	parser["ABC"].leave = [](any& dt) {		std::cout << "leaving ABC" << std::endl;	};
-	parser["ABD"].leave = [](any& dt) {		std::cout << "leaving ABD" << std::endl;	};	
-	parser["A"].leave = [](any& dt) {		std::cout << "leaving A" << std::endl;	};
-	parser["B"].leave = [](any& dt) {		std::cout << "leaving B" << std::endl;	};
-	parser["C"].leave = [](any& dt) {		std::cout << "leaving C" << std::endl;	};	
-	parser["D"].leave = [](any& dt) {		std::cout << "leaving D" << std::endl;	};
-	
-/*	parser["ABC"] = [](const SemanticValues& sv, any& dt) {
-		std::cout << "yeah ABC" << std::endl;
-		return sv[0].get<string>() + sv[1].get<string>() + sv[2].get<string>();
-	};
-	parser["ABD"] = [](const SemanticValues& sv, any& dt) {
-		std::cout << "yeah ABD" << std::endl;
-		return sv[0].get<string>() + sv[1].get<string>() + sv[2].get<string>();
-	};	*/
-	
-	#define S get<string>()
-	
-	auto concat = [](const SemanticValues& sv) {
-		string result;
-		for(auto s:sv){result += s.S;}
-		return result;
-	};
-	
-	parser["ABC"] = concat;
-	parser["ABD"] = concat;
-	
-	parser["A"] = [](const SemanticValues& sv) {
-		std::cout << "yeah A" << std::endl;
-		return string("Ar");
-	};
-	parser["B"] = [](const SemanticValues& sv) {
-		std::cout << "yeah B" << std::endl;
-		return string("Beh");
-	};
-	parser["C"] = [](const SemanticValues& sv) {
-		std::cout << "yeah C" << std::endl;	
-		return string("Ceh");
-	};	
-	parser["D"] = [](const SemanticValues& sv) {
-		std::cout << "yeah D" << std::endl;
-		return string("Deh");
-	};
+	RULE(prio1) {OPTIONS{
+		case 0:	return SV(0); // "(" + SV(0) + ")";
+		case 1:	return SV(0);
+	}};
 
-	
-/*
-    // (3) Setup actions
-    parser["Additive"] = [](const SemanticValues& sv) {
-        switch (sv.choice()) {
-        case 0:  // "Multitive '+' Additive"
-            return sv[0].get<int>() + sv[1].get<int>();
-        default: // "Multitive"
-            return sv[0].get<int>();
-        }
-    };
+	RULE(prio15) {OPTIONS{
+		case 0:	return "pos(" + SV(0) + ")";
+		case 1:	return "neg(" + SV(0) + ")";
+		case 2: return SV(0);
+	}};
 
-    parser["Multitive"] = [](const SemanticValues& sv) {
-        switch (sv.choice()) {
-        case 0:  // "Primary '*' Multitive"
-            return sv[0].get<int>() * sv[1].get<int>();
-        default: // "Primary"
-            return sv[0].get<int>();
-        }
-    };
+	RULE(prio2) {OPTIONS{
+		case 0:	return "pow(" + SV(0) + "," + SV(1) + ")";
+		case 1:	return SV(0);
+	}};
 
-    parser["Number"] = [](const SemanticValues& sv) {
-        return stoi(sv.token(), nullptr, 10);
-    };
-*/
-    // (4) Parse
-    //parser.enable_packrat_parsing(); // Enable packrat parsing.
+	RULE(prio3) {OPTIONS{
+		case 0:	return "mul(" + SV(0) + "," + SV(1) + ")";
+		case 1:	return "div(" + SV(0) + "," + SV(1) + ")";
+		case 2:	return SV(0);
+	}};
 
-	parser.enable_packrat_parsing(); // Enable packrat parsing.
-	
+	RULE(prio4) {OPTIONS{
+		case 0:	return "add(" + SV(0) + "," + SV(1) + ")";
+		case 1:	return "sub(" + SV(0) + "," + SV(1) + ")";
+		case 2:	return SV(0);
+	}};
+
+
+	string ret;
+	bool ok = testparser.parse(R"(+a*-(b+-c)^+d)", ret);
+	cout << "testresult: " << ok << endl << ret << endl << endl;
+
+
+	/*/
+
+
+	string grammar = makeGrammar();
+	customparser parser(grammar);
+
+	if (!parser) {
+		cout << "error parsing grammar";
+		system("PAUSE");
+		return EXIT_FAILURE;
+	}
+
+	parser.enable_packrat_parsing();
+
+	// create custom actions
+	makeRules(parser);
+		
 	string val;
+	//cout << parser.parse(R"($$)", val) << endl << endl;
+	string src = test();
+	cout << src << endl << endl;
+	auto result = parser.parse(src, val);
+	if (result) { cout << "################### SUCCESS!!! ################" << endl; }
+	else        { cout << "################### FAILURE!!! ################" << endl; }
+	cout << val << endl << endl << endl;
 	
-    cout << parser.parse("ab d", val) << endl << endl;
-	
-	cout << val;
-   
-   return 0;
+	/**/
+
+	system("PAUSE");
+	return 0;
 }

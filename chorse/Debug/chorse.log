@@ -1,5 +1,6 @@
 ﻿  main.cpp
-c:\users\mirko\development\chorse\src\main.cpp(25): warning C4477: "fprintf": Die Formatzeichenfolge "%d" erfordert ein Argument vom Typ "int", das variadic-Argument "3" weist aber den Typ "lua_Integer" auf.
-  c:\users\mirko\development\chorse\src\main.cpp(25): note: Verwenden Sie ggf. "%lld" in der Formatzeichenfolge.
-  c:\users\mirko\development\chorse\src\main.cpp(25): note: Verwenden Sie ggf. "%I64d" in der Formatzeichenfolge.
-  chorse.vcxproj -> C:\Users\mirko\development\chorse\chorse\Debug\chorse.exe
+c:\users\mirko\development\c-horse\src\main.cpp(14): warning C4005: "RULE": Makro-Neudefinition
+  c:\users\mirko\development\c-horse\src\grammar.h(4): note: Siehe vorherige Definition von "RULE"
+c:\users\mirko\development\c-horse\src\main.cpp(15): warning C4005: "SV": Makro-Neudefinition
+  c:\users\mirko\development\c-horse\src\grammar.h(5): note: Siehe vorherige Definition von "SV"
+  chorse.vcxproj -> C:\Users\mirko\development\c-horse\chorse\Debug\chorse.exe

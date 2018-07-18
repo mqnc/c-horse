@@ -17,7 +17,7 @@ def getCppFiles(dir):
 
 env = Environment(TARGET_ARCH = 'x86')
 env.VariantDir('build', 'src')
-env.AppendUnique(CXXFLAGS=["/O2"])
+#env.AppendUnique(CXXFLAGS=["/O2"])
 #env.AppendUnique(CXXFLAGS=["/DEBUG"])
 env.AppendUnique(CXXFLAGS=["/EHsc"])
 env.AppendUnique(CXXFLAGS=["/DLUA_COMPAT_5_2"])
