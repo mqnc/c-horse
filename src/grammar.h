@@ -49,6 +49,7 @@ FunctionEnd <- 'endfunction' / 'end'
 Identifier <- <([a-zA-Z_] [a-zA-Z_0-9]* / VerbatimCpp)> _
 
 OpKw <- 'operator'
+
 Prio0 <- Identifier / '(' Expression ')'
 Prio1 <- Prio0 '::' Prio1 / Prio0 OpKw '1(' OpName ')' Prio1 / Prio0
 Prio2 <- Prio1 '++' / Prio1 '--' / Prio1 '(' Expression ')' / Prio1 '[' Expression ']' / Prio1 '.' Prio2 / Prio1 OpKw '2(' OpName ')' / Prio1
@@ -64,8 +65,10 @@ Prio11 <- Prio10 '^' Prio11 / Prio10 OpKw '11(' OpName ')' Prio11 / Prio10
 Prio12 <- Prio11 '|' Prio12 / Prio11 OpKw '12(' OpName ')' Prio12 / Prio11
 Prio13 <- Prio12 '&&' Prio13 / Prio12 OpKw '13(' OpName ')' Prio13 / Prio12
 Prio14 <- Prio13 '||' Prio14 / Prio13 OpKw '14(' OpName ')' Prio14 / Prio13
-Prio15 <- Prio14 '?' Prio14 ':' Prio14 / Prio15 '=' Prio14 / Prio15 '+=' Prio14 / Prio15 '-=' Prio14 / Prio15 '*=' Prio14 / Prio15 '/=' Prio14 / Prio15 '%=' Prio14 / Prio15 '<<=' Prio14 / Prio15 '>>=' Prio14 / Prio15 '&=' Prio14 / Prio15 '^=' Prio14 / Prio15 '|=' Prio14 / Prio15 OpKw '15(' OpName ')' Prio14 / Prio14
-Expression <- Prio15
+Prio15 <- Prio14 '?' Prio14 ':' Prio14 / Prio15 '=' Prio14
+# / Prio15 '+=' Prio14 / Prio15 '-=' Prio14 / Prio15 '*=' Prio14 / Prio15 '/=' Prio14 / Prio15 '%=' Prio14 / Prio15 '<<=' Prio14 / Prio15 '>>=' Prio14 / Prio15 '&=' Prio14 / Prio15 '^=' Prio14 / Prio15 '|=' Prio14 / Prio15 OpKw '15(' OpName ')' Prio14 / Prio14
+
+Expression <- Placeholder
 OpName <- Identifier
 
 

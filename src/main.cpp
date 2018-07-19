@@ -18,51 +18,47 @@ using namespace std;
 int main (int argc, char *argv[])
 { 
 	
-	/*
+	auto syntax = R"(
+        # Grammar for Calculator...
+        Additive    <- Multitive '-' Additive / Multitive
+        Multitive   <- Primary '*' Multitive / Primary
+        Primary     <- '(' Additive ')' / Number
+        Number      <- < [0-9]+ >
+        %whitespace <- [ \t]*
+    )";
 
-	customparser testparser(R"(
-		prio4 <- prio3 '+' prio4 / prio3 '-' prio4 / prio3
-		prio3 <- prio2 '*' prio3 / prio2 '/' prio3 / prio2
-		prio2 <- prio15 '^' prio2 / prio15
-		prio15 <- '+' prio1 / '-' prio1 / prio1
-		prio1 <- '(' prio4 ')' / prio0
-		prio0 <- [a-z]
-	)");
-	
-	testparser.enable_packrat_parsing();
+	parser parser(syntax);
 
-	RULE(prio1) {OPTIONS{
-		case 0:	return SV(0); // "(" + SV(0) + ")";
-		case 1:	return SV(0);
-	}};
+	// (3) Setup actions
+	parser["Additive"] = [](const SemanticValues& sv) {
+		switch (sv.choice()) {
+		case 0:  // "Multitive '+' Additive"
+			return sv[0].get<int>() - sv[1].get<int>();
+		default: // "Multitive"
+			return sv[0].get<int>();
+		}
+	};
 
-	RULE(prio15) {OPTIONS{
-		case 0:	return "pos(" + SV(0) + ")";
-		case 1:	return "neg(" + SV(0) + ")";
-		case 2: return SV(0);
-	}};
+	parser["Multitive"] = [](const SemanticValues& sv) {
+		switch (sv.choice()) {
+		case 0:  // "Primary '*' Multitive"
+			return sv[0].get<int>() * sv[1].get<int>();
+		default: // "Primary"
+			return sv[0].get<int>();
+		}
+	};
 
-	RULE(prio2) {OPTIONS{
-		case 0:	return "pow(" + SV(0) + "," + SV(1) + ")";
-		case 1:	return SV(0);
-	}};
+	parser["Number"] = [](const SemanticValues& sv) {
+		return stoi(sv.token(), nullptr, 10);
+	};
 
-	RULE(prio3) {OPTIONS{
-		case 0:	return "mul(" + SV(0) + "," + SV(1) + ")";
-		case 1:	return "div(" + SV(0) + "," + SV(1) + ")";
-		case 2:	return SV(0);
-	}};
+	// (4) Parse
+	//parser.enable_packrat_parsing(); // Enable packrat parsing.
 
-	RULE(prio4) {OPTIONS{
-		case 0:	return "add(" + SV(0) + "," + SV(1) + ")";
-		case 1:	return "sub(" + SV(0) + "," + SV(1) + ")";
-		case 2:	return SV(0);
-	}};
+	int val;
+	parser.parse(" 10 - 5 - 1 ", val);
 
-
-	string ret;
-	bool ok = testparser.parse(R"(+a*-(b+-c)^+d)", ret);
-	cout << "testresult: " << ok << endl << ret << endl << endl;
+	cout << "testresult: " << val << endl << endl;
 
 
 	/*/

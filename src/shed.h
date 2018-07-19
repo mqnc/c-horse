@@ -49,3 +49,61 @@ void lua_pushentry(lua_State* L, int key, string value) {
 				return sv[0].get<string>() + sv[1].get<string>() + sv[2].get<string>();
 			};
 		}
+		
+		
+		
+		
+		
+		
+		
+	customparser testparser(R"(
+		prio4 <- prio3 '+' prio4 / prio3 '-' prio4 / prio3
+		prio3 <- prio2 '*' prio3 / prio2 '/' prio3 / prio2
+		prio2 <- prio15 '^' prio2 / prio15
+		prio15 <- '+' prio1 / '-' prio1 / prio1
+		prio1 <- '(' prio4 ')' / prio0
+		prio0 <- [a-z]
+	)");
+	
+	testparser.enable_packrat_parsing();
+
+	RULE(prio1) {OPTIONS{
+		case 0:	return SV(0); // "(" + SV(0) + ")";
+		case 1:	return SV(0);
+	}};
+
+	RULE(prio15) {OPTIONS{
+		case 0:	return "pos(" + SV(0) + ")";
+		case 1:	return "neg(" + SV(0) + ")";
+		case 2: return SV(0);
+	}};
+
+	RULE(prio2) {OPTIONS{
+		case 0:	return "pow(" + SV(0) + "," + SV(1) + ")";
+		case 1:	return SV(0);
+	}};
+
+	RULE(prio3) {OPTIONS{
+		case 0:	return "mul(" + SV(0) + "," + SV(1) + ")";
+		case 1:	return "div(" + SV(0) + "," + SV(1) + ")";
+		case 2:	return SV(0);
+	}};
+
+	RULE(prio4) {OPTIONS{
+		case 0:	return "add(" + SV(0) + "," + SV(1) + ")";
+		case 1:	return "sub(" + SV(0) + "," + SV(1) + ")";
+		case 2:	return SV(0);
+	}};		
+		
+	string ret;
+	bool ok = testparser.parse(R"(a+b+c)", ret);
+	cout << "testresult: " << ok << endl << ret << endl << endl;
+		
+		
+		
+		
+		
+		
+		
+		
+		
