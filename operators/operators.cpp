@@ -25,7 +25,8 @@ int main (int argc, char *argv[])
 	
 	if (!parser) {
 		cout << "error parsing grammar";
-		system("PAUSE");
+		string line;
+		getline(cin, line);
 		return EXIT_FAILURE;
 	}
 	
@@ -79,7 +80,8 @@ int main (int argc, char *argv[])
 
 	parser.parse(opgrammar.c_str(), val);	
 
-	system("PAUSE");
+	string line;
+	getline(cin, line);
 	return EXIT_SUCCESS;
 }
 
