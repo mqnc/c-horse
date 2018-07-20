@@ -16,11 +16,15 @@ def getCppFiles(dir):
 	return files
 
 env = Environment(TARGET_ARCH = 'x86')
+if "msvc" in env["TOOLS"]:
+	#env.AppendUnique(CXXFLAGS=["/O2"])
+	#env.AppendUnique(CXXFLAGS=["/DEBUG"])
+	env.AppendUnique(CXXFLAGS=["/EHsc"])
+elif "clangxx" in env["TOOLS"] or "g++" in env["TOOLS"]:
+	env.AppendUnique(CXXFLAGS=["-std=c++14"])
+
 env.VariantDir('build', 'src')
-#env.AppendUnique(CXXFLAGS=["/O2"])
-#env.AppendUnique(CXXFLAGS=["/DEBUG"])
-env.AppendUnique(CXXFLAGS=["/EHsc"])
-env.AppendUnique(CXXFLAGS=["/DLUA_COMPAT_5_2"])
+env.AppendUnique(CPPDEFINES=["LUA_COMPAT_5_2"])
 env.AppendUnique(CPPPATH=["src/lua/src"])
 
 cpps = getCppFiles("src")

@@ -1,6 +1,0 @@
-﻿  main.cpp
-c:\users\mirko\development\c-horse\src\main.cpp(14): warning C4005: "RULE": Makro-Neudefinition
-  c:\users\mirko\development\c-horse\src\grammar.h(4): note: Siehe vorherige Definition von "RULE"
-c:\users\mirko\development\c-horse\src\main.cpp(15): warning C4005: "SV": Makro-Neudefinition
-  c:\users\mirko\development\c-horse\src\grammar.h(5): note: Siehe vorherige Definition von "SV"
-  chorse.vcxproj -> C:\Users\mirko\development\c-horse\chorse\Debug\chorse.exe

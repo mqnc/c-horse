@@ -69,7 +69,8 @@ int main (int argc, char *argv[])
 
 	if (!parser) {
 		cout << "error parsing grammar";
-		system("PAUSE");
+		string line;
+		getline(cin, line);
 		return EXIT_FAILURE;
 	}
 
@@ -89,6 +90,7 @@ int main (int argc, char *argv[])
 	
 	/**/
 
-	system("PAUSE");
+	string line;
+	getline(cin, line);
 	return 0;
 }
