@@ -18,15 +18,16 @@ using namespace std;
 int main(int argc, char *argv[])
 {
 
-	auto syntax = R"(
-        # Grammar for Calculator...
-		Sub <- Subtitive
-        Subtitive    <- Sub '-' Multitive / Multitive
-        Multitive   <- Primary '*' Multitive / Primary
-        Primary     <- '(' Subtitive ')' / Number
-        Number      <- < [0-9]+ >
-        %whitespace <- [ \t]*
-    )";
+	const auto syntax = R"(
+		# Grammar for Calculator...
+		Additive <- (Multitive < ('+' / '-') >)* Multitive
+		Multitive <- (Primary < ('*' / '/') >)* Primary
+		Primary <- '(' Additive ')'
+			 / Number
+		Number <- < [0-9]+ >
+
+		%whitespace <- [ \t]*
+	)";
 
 	parser parser(syntax);
 
@@ -37,22 +38,36 @@ int main(int argc, char *argv[])
 	}
 
 	// (3) Setup actions
-	parser["Subtitive"] = [](const SemanticValues& sv) {
-		switch (sv.choice()) {
-		case 0:  // "Multitive '-' Subtitive"
-			return sv[0].get<int>() - sv[1].get<int>();
-		default: // "Multitive"
-			return sv[0].get<int>();
+	parser["Additive"] = [](const SemanticValues& sv) {
+		int result = 0;
+		for (size_t i = 0; i != sv.size(); ++i) {
+			if (0 == i) {
+				result = sv[i].get<int>();
+			} else {
+				if ("+" == sv.token(i - 1)) {
+					result += sv[i].get<int>();
+				} else {
+					result -= sv[i].get<int>();
+				}
+			}
 		}
+		return result;
 	};
 
 	parser["Multitive"] = [](const SemanticValues& sv) {
-		switch (sv.choice()) {
-		case 0:  // "Primary '*' Multitive"
-			return sv[0].get<int>() * sv[1].get<int>();
-		default: // "Primary"
-			return sv[0].get<int>();
+		int result = 1;
+		for (size_t i = 0; i != sv.size(); ++i) {
+			if (0 == i) {
+				result = sv[i].get<int>();
+			} else {
+				if ("*" == sv.token(i - 1)) {
+					result *= sv[i].get<int>();
+				} else {
+					result /= sv[i].get<int>();
+				}
+			}
 		}
+		return result;
 	};
 
 	parser["Number"] = [](const SemanticValues& sv) {
@@ -62,13 +77,27 @@ int main(int argc, char *argv[])
 	// (4) Parse
 	//parser.enable_packrat_parsing(); // Enable packrat parsing.
 
-	int val;
-	parser.log = [&](size_t ln, size_t col, const string& msg) {
+	parser.log = [](const size_t ln, const size_t col, const string& msg) {
 		cout << "(" << ln << "," << col << ") " << msg;
 	};
-	parser.parse(" 10 - 5 - 1 ", val);
 
-	cout << "testresult: " << val << endl << endl;
+	const char* const tests[] = {
+		" 1 + 2 ",
+		" 1 - 2 ",
+		" 10 - 5 - 1 ",
+		"10 - 5 + 1",
+		"10 + 5 - 1",
+		"4 / 2",
+		"1 + 3 * 4",
+		"(1 + 3) * 4",
+	};
+	for (const auto& test : tests)
+	{
+		int val;
+		parser.parse(test, val);
+		cout << test << ": " << val << endl;
+	}
+	cout << endl;
 
 
 	/*/
