@@ -15,24 +15,31 @@ using namespace std;
 #define SV(I) sv[I].get<string>()
 #define OPTIONS switch (sv.choice())
 
-int main (int argc, char *argv[])
-{ 
-	
+int main(int argc, char *argv[])
+{
+
 	auto syntax = R"(
         # Grammar for Calculator...
-        Additive    <- Multitive '-' Additive / Multitive
+		Sub <- Subtitive
+        Subtitive    <- Sub '-' Multitive / Multitive
         Multitive   <- Primary '*' Multitive / Primary
-        Primary     <- '(' Additive ')' / Number
+        Primary     <- '(' Subtitive ')' / Number
         Number      <- < [0-9]+ >
         %whitespace <- [ \t]*
     )";
 
 	parser parser(syntax);
 
+	if (!parser){
+		cout << "error creating grammar";
+		system("PAUSE");
+		return EXIT_FAILURE;
+	}
+
 	// (3) Setup actions
-	parser["Additive"] = [](const SemanticValues& sv) {
+	parser["Subtitive"] = [](const SemanticValues& sv) {
 		switch (sv.choice()) {
-		case 0:  // "Multitive '+' Additive"
+		case 0:  // "Multitive '-' Subtitive"
 			return sv[0].get<int>() - sv[1].get<int>();
 		default: // "Multitive"
 			return sv[0].get<int>();
@@ -56,6 +63,9 @@ int main (int argc, char *argv[])
 	//parser.enable_packrat_parsing(); // Enable packrat parsing.
 
 	int val;
+	parser.log = [&](size_t ln, size_t col, const string& msg) {
+		cout << "(" << ln << "," << col << ") " << msg;
+	};
 	parser.parse(" 10 - 5 - 1 ", val);
 
 	cout << "testresult: " << val << endl << endl;
