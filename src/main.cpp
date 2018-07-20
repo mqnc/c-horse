@@ -15,13 +15,40 @@ using namespace std;
 #define SV(I) sv[I].get<string>()
 #define OPTIONS switch (sv.choice())
 
+namespace op
+{
+	any add(const any& lhs, const any& rhs) {
+		return lhs.get<int>() + rhs.get<int>();
+	}
+	any sub(const any& lhs, const any& rhs) {
+		return lhs.get<int>() - rhs.get<int>();
+	}
+	any mul(const any& lhs, const any& rhs) {
+		return lhs.get<int>() * rhs.get<int>();
+	}
+	any div(const any& lhs, const any& rhs) {
+		return lhs.get<int>() / rhs.get<int>();
+	}
+
+	any reduceOperatorSequence(const SemanticValues& sv) {
+		any result = sv[0];
+		for (size_t i = 1; i != sv.size(); i += 2) {
+			const auto op = sv[i].get<any(*)(const any&, const any&)>();
+			result = op(result, sv[1 + i]);
+		}
+		return result;
+	}
+}
+
 int main(int argc, char *argv[])
 {
 
 	const auto syntax = R"(
 		# Grammar for Calculator...
-		Additive <- (Multitive < ('+' / '-') >)* Multitive
-		Multitive <- (Primary < ('*' / '/') >)* Primary
+		Additive <- (Multitive AddOp)* Multitive
+		AddOp <- '+' / '-'
+		Multitive <- (Primary MulOp)* Primary
+		MulOp <- '*' / '/'
 		Primary <- '(' Additive ')'
 			 / Number
 		Number <- < [0-9]+ >
@@ -38,36 +65,26 @@ int main(int argc, char *argv[])
 	}
 
 	// (3) Setup actions
-	parser["Additive"] = [](const SemanticValues& sv) {
-		int result = 0;
-		for (size_t i = 0; i != sv.size(); ++i) {
-			if (0 == i) {
-				result = sv[i].get<int>();
-			} else {
-				if ("+" == sv.token(i - 1)) {
-					result += sv[i].get<int>();
-				} else {
-					result -= sv[i].get<int>();
-				}
-			}
+	parser["Additive"] = op::reduceOperatorSequence;
+
+	parser["AddOp"] = [](const SemanticValues& sv) {
+		switch (sv.choice()) {
+		case 0: // "'+'"
+			return &op::add;
+		default: // "'-'"
+			return &op::sub;
 		}
-		return result;
 	};
 
-	parser["Multitive"] = [](const SemanticValues& sv) {
-		int result = 1;
-		for (size_t i = 0; i != sv.size(); ++i) {
-			if (0 == i) {
-				result = sv[i].get<int>();
-			} else {
-				if ("*" == sv.token(i - 1)) {
-					result *= sv[i].get<int>();
-				} else {
-					result /= sv[i].get<int>();
-				}
-			}
+	parser["Multitive"] = op::reduceOperatorSequence;
+
+	parser["MulOp"] = [](const SemanticValues& sv) {
+		switch (sv.choice()) {
+		case 0: // "'*'"
+			return &op::mul;
+		default: // "'/'"
+			return &op::div;
 		}
-		return result;
 	};
 
 	parser["Number"] = [](const SemanticValues& sv) {
