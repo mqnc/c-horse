@@ -39,32 +39,24 @@ int main(int argc, char *argv[])
 
 	// (3) Setup actions
 	parser["Additive"] = [](const SemanticValues& sv) {
-		int result = 0;
-		for (size_t i = 0; i != sv.size(); ++i) {
-			if (0 == i) {
-				result = sv[i].get<int>();
+		int result = sv[0].get<int>();
+		for (size_t i = 1; i != sv.size(); ++i) {
+			if ("+" == sv.token(i - 1)) {
+				result += sv[i].get<int>();
 			} else {
-				if ("+" == sv.token(i - 1)) {
-					result += sv[i].get<int>();
-				} else {
-					result -= sv[i].get<int>();
-				}
+				result -= sv[i].get<int>();
 			}
 		}
 		return result;
 	};
 
 	parser["Multitive"] = [](const SemanticValues& sv) {
-		int result = 1;
-		for (size_t i = 0; i != sv.size(); ++i) {
-			if (0 == i) {
-				result = sv[i].get<int>();
+		int result = sv[0].get<int>();
+		for (size_t i = 1; i != sv.size(); ++i) {
+			if ("*" == sv.token(i - 1)) {
+				result *= sv[i].get<int>();
 			} else {
-				if ("*" == sv.token(i - 1)) {
-					result *= sv[i].get<int>();
-				} else {
-					result /= sv[i].get<int>();
-				}
+				result /= sv[i].get<int>();
 			}
 		}
 		return result;
