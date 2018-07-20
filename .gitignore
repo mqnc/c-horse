@@ -1,1 +1,5 @@
-chorse/.vs
+/.sconsign.dblite
+/build/
+/chorse/.vs/
+/chorse/Debug/
+__pycache__
